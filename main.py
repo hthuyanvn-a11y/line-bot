@@ -23,24 +23,31 @@ def webhook():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-  user_id = event.source.user_id
     group_id = getattr(event.source, 'group_id', None)
     
-    # 這裡填入你核准過的群組 ID。如果目前還沒有，先留空像下面這樣
+    # 這裡填入你核准過的群組 ID。如果目前沒有，就先維持這樣
     APPROVED_GROUPS = [
-        "C1234567890abcdef...",  # 日後有新群組，就把 C 開頭的 ID 填在這裡
+        "C1234567890abcdef...", 
     ]
     
-    # 情況一：如果是群組訊息，但這個群組你還沒核准，就直接裝死
+    # 防護鎖：如果是群組訊息，且不在核准名單內，直接已讀不回，不執行任何後續程式
     if group_id and group_id not in APPROVED_GROUPS:
         return "OK"
         
-    # 情況二：如果是私訊，但對方不是你（你在 LINE 必須是這個官方帳號的「對話管理員」或創造者）
-    # 為了不要鎖死你，我們可以先不鎖私訊，或者等你在 Logs 查到你的 U 開頭 ID 後再補上：
-    # if not group_id and user_id != "你的U開頭ID": return "OK"
-    response = client.models.generate_content(model='gemini-2.5-flash', contents=event.message.text)
-    reply_text = response.text
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
-
+    try:
+        # 呼叫 Gemini 產生回覆
+        response = client.models.generate_content(
+            model='gemini-2.5-flash', 
+            contents=event.message.text
+        )
+        reply_text = response.text
+        
+        # 用最安全、不會因為漏掉 import 報錯的官方內建方式回覆文字
+        from linebot.models import TextSendMessage
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
+        
+    except Exception as e:
+        print(f"發生錯誤: {e}")
+        return "OK"
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
