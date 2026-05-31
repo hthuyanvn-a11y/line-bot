@@ -35,8 +35,15 @@ def handle_message(event):
     if group_id and group_id not in APPROVED_GROUPS:
         return "OK"
         
-    try:
+try:
         from linebot.models import TextSendMessage
+        
+        # --- 新增關鍵字限制 ---
+        # 只有訊息內容包含「分析」兩個字，才會呼叫 Gemini
+        if "分析" not in event.message.text:
+            return "OK"  # 直接結束，不呼叫 API
+        # ----------------------
+        
         response = client.models.generate_content(
             model='gemini-2.5-flash', 
             contents=event.message.text
@@ -46,5 +53,3 @@ def handle_message(event):
     except Exception as e:
         print(f"Error: {e}")
         return "OK"
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
