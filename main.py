@@ -25,14 +25,13 @@ def webhook():
 def handle_message(event):
     group_id = getattr(event.source, 'group_id', None)
     
-    # 關鍵的一行：如果這是在群組裡，直接把 ID 顯示在後台 Logs
+  # 關鍵的一行：如果這是在群組裡，直接把 ID 顯示在後台 Logs
     if group_id:
         print(f"DEBUG_GROUP_ID: {group_id}")
     
     APPROVED_GROUPS = [
-        "C1234567890abcdef...", 
+        "Cb83e12539de8e31cc5e11783389ed646", 
     ]
-    
     if group_id and group_id not in APPROVED_GROUPS:
         return "OK"
         
