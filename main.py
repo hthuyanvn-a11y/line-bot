@@ -41,8 +41,11 @@ try:
         # --- 新增關鍵字限制 ---
         # 只有訊息內容包含「分析」兩個字，才會呼叫 Gemini
         if "分析" not in event.message.text:
-            return "OK"  # 直接結束，不呼叫 API
-        # ----------------------
+        return "OK"
+    ```
+    （確保 `return` 前面有正確的四個空格縮排）
+
+如果還是報錯，請點擊 `image_a68980.jpg` 畫面上的 **「deploy logs」**，然後把那裡顯示的錯誤訊息截圖給我看，我馬上就能告訴你哪一行出錯了！
         
         response = client.models.generate_content(
             model='gemini-2.5-flash', 
