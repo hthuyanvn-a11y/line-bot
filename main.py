@@ -25,29 +25,27 @@ def webhook():
 def handle_message(event):
     group_id = getattr(event.source, 'group_id', None)
     
-    # 這裡填入你核准過的群組 ID。如果目前沒有，就先維持這樣
+    # 關鍵的一行：如果這是在群組裡，直接把 ID 顯示在後台 Logs
+    if group_id:
+        print(f"DEBUG_GROUP_ID: {group_id}")
+    
     APPROVED_GROUPS = [
         "C1234567890abcdef...", 
     ]
     
-    # 防護鎖：如果是群組訊息，且不在核准名單內，直接已讀不回，不執行任何後續程式
     if group_id and group_id not in APPROVED_GROUPS:
         return "OK"
         
     try:
-        # 呼叫 Gemini 產生回覆
+        from linebot.models import TextSendMessage
         response = client.models.generate_content(
             model='gemini-2.5-flash', 
             contents=event.message.text
         )
         reply_text = response.text
-        
-        # 用最安全、不會因為漏掉 import 報錯的官方內建方式回覆文字
-        from linebot.models import TextSendMessage
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
-        
     except Exception as e:
-        print(f"發生錯誤: {e}")
+        print(f"Error: {e}")
         return "OK"
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
